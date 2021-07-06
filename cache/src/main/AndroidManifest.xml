@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.show.cache">
+
+    <application>
+
+        <provider
+            android:authorities="${applicationId}.androidx-startup"
+            android:name="androidx.startup.InitializationProvider"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="com.show.cache.CacheInitializer"
+                android:value="@string/androidx_startup"/>
+
+        </provider>
+
+        <provider
+            android:authorities="${applicationId}.workmanager-init"
+            android:name="androidx.work.impl.WorkManagerInitializer"
+            android:exported="false"
+            tools:node="remove"
+            />
+
+    </application>
+
+</manifest>

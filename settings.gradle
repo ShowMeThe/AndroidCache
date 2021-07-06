@@ -1,0 +1,3 @@
+rootProject.name = "AndroidCache"
+include ':app'
+include ':cache'

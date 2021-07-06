@@ -15,8 +15,11 @@ import kotlinx.coroutines.launch
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileOutputStream
+import java.io.InputStream
 import java.nio.ByteBuffer
 import java.util.*
+import java.util.zip.ZipInputStream
+import java.util.zip.ZipOutputStream
 
 object CacheFlow {
 
@@ -43,6 +46,90 @@ object CacheFlow {
     }
 
 
+    fun streamToCache(inputStream: InputStream): Flow<File?> {
+        return flow {
+            val byteArray = inputStream.buffered().readBytes()
+            val md5Name = Util.value2MD5(byteArray)
+            emit(copyStreamToLocal(md5Name, byteArray))
+        }
+    }
+
+    private fun copyStreamToLocal(
+        md5Name: String,
+        byteArray: ByteArray
+    ): File? {
+        return DataHelper.getDao().getSourceInfo(md5Name,100).let {
+            if (it == null || File(it.path).exists().not()) {
+                runCatching {
+                    val cacheFile = File(
+                        checkDirIfNotCreate(CacheConfig.getConfig().file).path + File.separator + UUID.randomUUID())
+                    val fos = cacheFile.outputStream().buffered()
+                    fos.write(byteArray)
+                    fos.flush()
+                    fos.close()
+                    DataHelper.getDao().insertSource(
+                        SourceInfo(
+                            md5Name,
+                            compress = 100,
+                            path = cacheFile.path,
+                            finalMd5 = Util.value2MD5(cacheFile.readBytes())
+                        )
+                    )
+                    cacheFile
+                }.onFailure { e ->
+                    e.printStackTrace()
+                }.getOrNull()
+            } else {
+                it.usingCount += 1
+                DataHelper.getDao().insertSource(it)
+                File(it.path)
+            }
+        }
+    }
+
+
+    fun fileToCache(file: File): Flow<File?> {
+        return flow {
+            val byteArray = file.readBytes()
+            val md5Name = Util.value2MD5(byteArray)
+            emit(copyFileToLocal(md5Name, byteArray,file.name))
+        }
+    }
+
+    private fun copyFileToLocal(md5Name: String, byteArray : ByteArray,fileName:String): File? {
+        return DataHelper.getDao().getSourceInfo(md5Name,100).let {
+            if (it == null || File(it.path).exists().not()) {
+                runCatching {
+                    val cacheFile = File(
+                        checkDirIfNotCreate(CacheConfig.getConfig().file).path + File.separator + UUID.randomUUID() + ".${
+                            fileName.substringAfterLast(".")
+                        }"
+                    )
+                    val fos = cacheFile.outputStream().buffered()
+                    fos.write(byteArray)
+                    fos.flush()
+                    fos.close()
+                    DataHelper.getDao().insertSource(
+                        SourceInfo(
+                            md5Name,
+                            compress = 100,
+                            path = cacheFile.path,
+                            finalMd5 = Util.value2MD5(cacheFile.readBytes())
+                        )
+                    )
+                    cacheFile
+                }.onFailure { e ->
+                    e.printStackTrace()
+                }.getOrNull()
+            } else {
+                it.usingCount += 1
+                DataHelper.getDao().insertSource(it)
+                File(it.path)
+            }
+        }
+    }
+
+
     fun bitmapToCache(
         bitmap: Bitmap,
         format: Bitmap.CompressFormat = Bitmap.CompressFormat.WEBP,
@@ -53,7 +140,7 @@ object CacheFlow {
                 bitmap.copyPixelsToBuffer(it)
                 it.array()
             }) + "[${bitmap.width}X${bitmap.height}X${format.name}]"
-            emit(copyToLocal(md5Name, bitmap, format, quality))
+            emit(copyBitmapToLocal(md5Name, bitmap, format, quality))
         }
     }
 
@@ -79,12 +166,12 @@ object CacheFlow {
                 scaleBitmap.copyPixelsToBuffer(it)
                 it.array()
             }) + "[${minWidth}X${minHeight}X${format.name}]"
-            emit(copyToLocal(md5Name, scaleBitmap, format, quality,needRecycle = true))
+            emit(copyBitmapToLocal(md5Name, scaleBitmap, format, quality, needRecycle = true))
         }
     }
 
 
-    private fun copyToLocal(
+    private fun copyBitmapToLocal(
         md5Name: String,
         bitmap: Bitmap,
         format: Bitmap.CompressFormat,
@@ -121,7 +208,7 @@ object CacheFlow {
                         e.printStackTrace()
                     }.getOrNull()
                 } else {
-                    it.usingCount +=1
+                    it.usingCount += 1
                     DataHelper.getDao().insertSource(it)
                     File(it.path)
                 }

@@ -6,9 +6,9 @@ import androidx.room.PrimaryKey
 @Entity
 class SourceInfo(
     @PrimaryKey val md5Name: String,
-    val compress: Int,
+    val compress: Int = 100,
     val path: String,
     val finalMd5: String,
-    var usingCount :Int = 0
+    var usingCount :Int = 1
 )
 

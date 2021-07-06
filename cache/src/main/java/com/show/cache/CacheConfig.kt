@@ -17,6 +17,8 @@ class CacheConfig private constructor(){
 
     var image = "Image"
 
+    var file = "Files"
+
     var abandonTime = 2
 
 }

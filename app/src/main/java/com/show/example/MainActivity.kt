@@ -15,6 +15,12 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.BufferedReader
+import java.lang.StringBuilder
+import java.nio.ByteBuffer
+import java.util.zip.ZipEntry
+import java.util.zip.ZipFile
+import java.util.zip.ZipInputStream
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,9 +34,10 @@ class MainActivity : AppCompatActivity() {
 
         binding.btn.setOnClickListener {
             GlobalScope.launch(Dispatchers.IO) {
-                val bitmap = BitmapFactory.decodeResource(resources, R.drawable.ic_photo)
-                CacheFlow.bitmapToCache(bitmap, minWidth = 1080, quality = 50)
-                    .map { BitmapFactory.decodeFile(it?.path) }
+                CacheFlow.streamToCache(resources.assets.open("jtbz_weimei_4.jpg"))
+                    .map {
+                        BitmapFactory.decodeFile(it?.path)
+                    }
                     .collect {
                         withContext(Dispatchers.Main.immediate) {
                             binding.iv.setImageBitmap(it)
@@ -38,8 +45,6 @@ class MainActivity : AppCompatActivity() {
                     }
             }
         }
-
-
 
 
     }

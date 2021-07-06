@@ -14,6 +14,9 @@ interface SourceDao {
     @Query("select * from SourceInfo where md5Name=:md5Name and compress = :compress")
     fun getSourceInfo(md5Name: String, compress: Int): SourceInfo?
 
+    @Query("select * from SourceInfo where md5Name=:md5Name")
+    fun getSourceInfo(md5Name: String): SourceInfo?
+
     @Delete
     fun deleteSource(sourceInfo: SourceInfo)
 

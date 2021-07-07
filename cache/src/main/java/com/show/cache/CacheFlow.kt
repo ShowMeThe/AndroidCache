@@ -45,12 +45,22 @@ object CacheFlow {
         return file
     }
 
+    fun streamAppendCache(inputStream: InputStream,file: File): Flow<File?> {
+        return flow {
+            val buffer = inputStream.buffered().readBytes()
+            file.appendBytes(buffer)
+            emit(file)
+            inputStream.close()
+        }
+    }
+
 
     fun streamToCache(inputStream: InputStream): Flow<File?> {
         return flow {
             val byteArray = inputStream.buffered().readBytes()
             val md5Name = Util.value2MD5(byteArray)
             emit(copyStreamToLocal(md5Name, byteArray))
+            inputStream.close()
         }
     }
 

@@ -8,13 +8,8 @@ import androidx.lifecycle.asLiveData
 import com.show.cache.CacheConfig
 import com.show.cache.CacheFlow
 import com.show.example.databinding.ActivityMainBinding
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
 import java.io.BufferedReader
 import java.lang.StringBuilder
 import java.nio.ByteBuffer
@@ -34,15 +29,19 @@ class MainActivity : AppCompatActivity() {
 
         binding.btn.setOnClickListener {
             GlobalScope.launch(Dispatchers.IO) {
-                CacheFlow.streamToCache(resources.assets.open("jtbz_weimei_4.jpg"))
-                    .map {
-                        BitmapFactory.decodeFile(it?.path)
-                    }
-                    .collect {
-                        withContext(Dispatchers.Main.immediate) {
-                            binding.iv.setImageBitmap(it)
-                        }
-                    }
+                var startTime = System.currentTimeMillis()
+                flow {
+                    delay(500)
+                    emit("data")
+                }.combine(flow {
+                    delay(400)
+                    emit(111)
+                },){ t1,t2 ->
+                   return@combine t1 + "$t2"
+                }.collect {
+                    var endTime = System.currentTimeMillis()
+                    Log.e("2222222222","${endTime - startTime}")
+                }
             }
         }
 

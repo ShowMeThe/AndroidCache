@@ -8,8 +8,11 @@ import androidx.lifecycle.asLiveData
 import com.show.cache.CacheConfig
 import com.show.cache.CacheFlow
 import com.show.example.databinding.ActivityMainBinding
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.lang.StringBuilder
 import java.nio.ByteBuffer
@@ -29,19 +32,11 @@ class MainActivity : AppCompatActivity() {
 
         binding.btn.setOnClickListener {
             GlobalScope.launch(Dispatchers.IO) {
-                var startTime = System.currentTimeMillis()
-                flow {
-                    delay(500)
-                    emit("data")
-                }.combine(flow {
-                    delay(400)
-                    emit(111)
-                },){ t1,t2 ->
-                   return@combine t1 + "$t2"
-                }.collect {
-                    var endTime = System.currentTimeMillis()
-                    Log.e("2222222222","${endTime - startTime}")
-                }
+                CacheFlow.streamToCache(resources.assets.open("text.txt"))
+                    .flatMapConcat { CacheFlow.streamAppendCache(resources.assets.open("text.txt"),it!!) }
+                    .collect {
+
+                    }
             }
         }
 

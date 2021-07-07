@@ -34,6 +34,7 @@ class MainActivity : AppCompatActivity() {
             GlobalScope.launch(Dispatchers.IO) {
                 CacheFlow.streamToCache(resources.assets.open("text.txt"))
                     .flatMapConcat { CacheFlow.streamAppendCache(resources.assets.open("text.txt"),it!!) }
+                    .flatMapConcat { CacheFlow.streamAppendCache(resources.assets.open("text2.txt"),it!!) }
                     .collect {
 
                     }

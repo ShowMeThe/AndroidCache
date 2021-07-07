@@ -50,7 +50,9 @@ object CacheFlow {
             val buffer = inputStream.buffered().readBytes()
             file.appendBytes(buffer)
             emit(file)
-            inputStream.close()
+            kotlin.runCatching {
+                inputStream.close()
+            }
         }
     }
 
@@ -60,7 +62,9 @@ object CacheFlow {
             val byteArray = inputStream.buffered().readBytes()
             val md5Name = Util.value2MD5(byteArray)
             emit(copyStreamToLocal(md5Name, byteArray))
-            inputStream.close()
+            kotlin.runCatching {
+                inputStream.close()
+            }
         }
     }
 

@@ -202,7 +202,7 @@ object CacheFlow {
                                 Util.getImageSuffix(format)
                             }"
                         )
-                        val fos = BufferedOutputStream(FileOutputStream(cacheFile))
+                        val fos = cacheFile.outputStream().buffered()
                         bitmap.compress(format, quality, fos)
                         fos.flush()
                         fos.close()
